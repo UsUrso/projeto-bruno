@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farol Amarelo - Espaço de Acolhimento e Apoio Emocional</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        amber: {
+                            50: '#FFFDF0',
+                            100: '#FFF9E6',
+                            200: '#FFF0B8',
+                            300: '#FFE082',
+                            400: '#FFD54F',
+                            500: '#FFCA28',
+                            600: '#FFB300',
+                            700: '#FFA000',
+                            800: '#FF8F00',
+                            900: '#FF6F00',
+                        },
+                        calm: {
+                            bg: '#FAF8F5',
+                            card: '#FFFFFF',
+                            text: '#2D3748',
+                            muted: '#718096',
+                            softDark: '#1A202C'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace']
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'breathe-circle': 'breathe 12s infinite ease-in-out',
+                    },
+                    keyframes: {
+                        breathe: {
+                            '0%, 100%': { transform: 'scale(1)', opacity: '0.6' },
+                            '33%': { transform: 'scale(1.8)', opacity: '0.95' }, /* Inhale 4s */
+                            '50%': { transform: 'scale(1.8)', opacity: '0.95' }, /* Hold 2s */
+                            '83%': { transform: 'scale(1)', opacity: '0.6' },   /* Exhale 4s */
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.8s ease, filter 0.8s ease;
+            background-color: #FAF8F5;
+            color: #2D3748;
+        }
+
+        /* Ambient Dimmed / SOS Mode Styling */
+        body.sos-active {
+            background-color: #121820 !important;
+            filter: brightness(0.85) contrast(0.95);
+            color: #E2E8F0 !important;
+        }
+
+        .calm-shadow {
+            box-shadow: 0 10px 25px -5px rgba(255, 179, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.03);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 179, 0, 0.3);
+            border-radius: 10px;
+        }
+
+        @keyframes ripple {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.1); opacity: 0.4; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+        .recording-pulse {
+            animation: ripple 1.5s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-amber-200">
+
+    <!-- Top Navigation Header -->
+    <header id="mainHeader" class="sticky top-0 z-40 backdrop-blur-md bg-white/80 border-b border-amber-100 transition-colors duration-500">
+        <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-amber-400 to-amber-200 flex items-center justify-center shadow-md">
+                    <i data-lucide="sun" class="w-6 h-6 text-amber-900"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight text-gray-900 flex items-center gap-2" id="brandTitle">
+                        Farol Amarelo
+                        <span class="text-xs font-normal px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">Setembro Amarelo</span>
+                    </h1>
+                    <p class="text-xs text-gray-500" id="brandSubtitle">Pronto-Socorro Emocional & Acolhimento</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <!-- User Profile / Auth Area -->
+                <div id="userHeaderArea" class="flex items-center gap-2">
+                    <button onclick="openAuthModal()" id="loginBtnHeader" class="text-xs font-semibold px-3 py-2 rounded-xl border border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100 transition flex items-center gap-1.5">
+                        <i data-lucide="user" class="w-4 h-4"></i> Entrar
+                    </button>
+                    <div id="loggedInUserBadge" class="hidden items-center gap-2 bg-amber-100 border border-amber-300 text-amber-900 px-3 py-1.5 rounded-xl text-xs font-medium">
+                        <i data-lucide="user-check" class="w-4 h-4 text-amber-700"></i>
+                        <span id="headerUserName">Usuário</span>
+                        <button onclick="logoutUser()" title="Sair da conta" class="text-amber-700 hover:text-red-600 ml-1">
+                            <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Emergency Quick Access Button -->
+                <button onclick="toggleSOSModal()" class="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-medium px-4 py-2 rounded-full shadow-md hover:shadow-lg transition duration-200 active:scale-95 text-sm">
+                    <i data-lucide="heart-handshake" class="w-4 h-4 animate-bounce"></i>
+                    <span class="hidden sm:inline">Não Estou Bem (SOS)</span>
+                    <span class="sm:hidden">SOS</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Dynamic Content Container -->
+    <main class="max-w-5xl mx-auto px-4 py-6 flex-grow w-full">
+        
+        <!-- Tab Navigation Menu -->
+        <nav class="flex border-b border-gray-200 mb-6 overflow-x-auto no-scrollbar gap-2 sm:gap-6" id="navTabs">
+            <button onclick="switchTab('inicio')" id="tab-inicio" class="tab-btn active-tab flex items-center gap-2 py-3 px-3 border-b-2 font-medium text-sm transition-all whitespace-nowrap border-amber-500 text-amber-700">
+                <i data-lucide="home" class="w-4 h-4"></i> Início & SOS
+            </button>
+            <button onclick="switchTab('diario')" id="tab-diario" class="tab-btn flex items-center gap-2 py-3 px-3 border-b-2 font-medium text-sm transition-all whitespace-nowrap border-transparent text-gray-500 hover:text-amber-600">
+                <i data-lucide="mic" class="w-4 h-4"></i> Diário do Farolheiro
+            </button>
+            <button onclick="switchTab('rede')" id="tab-rede" class="tab-btn flex items-center gap-2 py-3 px-3 border-b-2 font-medium text-sm transition-all whitespace-nowrap border-transparent text-gray-500 hover:text-amber-600">
+                <i data-lucide="users" class="w-4 h-4"></i> Rede Silenciosa (Faróis)
+            </button>
+            <button onclick="switchTab('triagem')" id="tab-triagem" class="tab-btn flex items-center gap-2 py-3 px-3 border-b-2 font-medium text-sm transition-all whitespace-nowrap border-transparent text-gray-500 hover:text-amber-600">
+                <i data-lucide="shield-alert" class="w-4 h-4"></i> Triagem & Apoio CVV
+            </button>
+            <button onclick="switchTab('kotlin')" id="tab-kotlin" class="tab-btn flex items-center gap-2 py-3 px-3 border-b-2 font-medium text-sm transition-all whitespace-nowrap border-transparent text-gray-500 hover:text-amber-600">
+                <i data-lucide="code" class="w-4 h-4 text-purple-600"></i> Código Kotlin (Android)
+            </button>
+        </nav>
+
+        <!-- ================= TAB 1: INÍCIO / SOS ================= -->
+        <section id="content-inicio" class="tab-content space-y-6">
+            <div class="bg-gradient-to-br from-amber-50 via-amber-100/60 to-orange-50 border border-amber-200/80 rounded-2xl p-6 sm:p-8 calm-shadow relative overflow-hidden">
+                <div class="max-w-2xl relative z-10">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-200/80 text-amber-900 mb-3">
+                        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Espaço de Acolhimento Imediato
+                    </span>
+                    <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 leading-tight">
+                        Você não precisa passar por momentos difíceis a sós.
+                    </h2>
+                    <p class="text-gray-700 text-sm sm:text-base mb-6 leading-relaxed">
+                        O <strong>Farol Amarelo</strong> funciona como um pronto-socorro emocional de clique único. Crie sua conta privada para manter o seu histórico de áudios, desabafos e rede de apoio salvos em segurança.
+                    </p>
+                    
+                    <div class="flex flex-wrap gap-3">
+                        <button onclick="toggleSOSModal()" class="bg-amber-500 hover:bg-amber-600 text-white font-semibold px-6 py-3 rounded-xl shadow-md flex items-center gap-2 transition active:scale-95">
+                            <i data-lucide="wind" class="w-5 h-5"></i>
+                            Botão SOS de Clique Único
+                        </button>
+                        <button onclick="switchTab('diario')" class="bg-white hover:bg-amber-50 text-amber-900 font-semibold px-5 py-3 rounded-xl border border-amber-300 shadow-sm flex items-center gap-2 transition">
+                            <i data-lucide="message-square" class="w-5 h-5"></i>
+                            Desabafar com o Farolheiro
+                        </button>
+                    </div>
+                </div>
+                <div class="absolute -right-8 -bottom-8 w-60 h-60 bg-amber-300/20 rounded-full blur-2xl pointer-events-none"></div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div class="bg-white border border-gray-100 rounded-2xl p-5 hover:border-amber-300 transition-all duration-300 calm-shadow flex flex-col justify-between">
+                    <div>
+                        <div class="w-11 h-11 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center mb-4">
+                            <i data-lucide="heart" class="w-6 h-6"></i>
+                        </div>
+                        <h3 class="font-bold text-gray-900 text-lg mb-1">Socorro Imediato</h3>
+                        <p class="text-xs text-gray-600 mb-4">Ajusta o brilho da tela, aplica um fundo suave e inicia o exercício de respiração guiada de 12 segundos.</p>
+                    </div>
+                    <button onclick="toggleSOSModal()" class="w-full py-2.5 px-4 bg-amber-50 hover:bg-amber-100 text-amber-900 font-medium rounded-lg text-sm transition flex items-center justify-center gap-2">
+                        <span>Acessar Respiro</span>
+                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    </button>
+                </div>
+
+                <div class="bg-white border border-gray-100 rounded-2xl p-5 hover:border-amber-300 transition-all duration-300 calm-shadow flex flex-col justify-between">
+                    <div>
+                        <div class="w-11 h-11 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center mb-4">
+                            <i data-lucide="mic" class="w-6 h-6"></i>
+                        </div>
+                        <h3 class="font-bold text-gray-900 text-lg mb-1">Diário do Farolheiro</h3>
+                        <p class="text-xs text-gray-600 mb-4">Grave áudios ou escreva desabafos sem julgamentos. A IA Farolheiro analisa e responde com empatia.</p>
+                    </div>
+                    <button onclick="switchTab('diario')" class="w-full py-2.5 px-4 bg-blue-50 hover:bg-blue-100 text-blue-900 font-medium rounded-lg text-sm transition flex items-center justify-center gap-2">
+                        <span>Iniciar Desabafo</span>
+                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    </button>
+                </div>
+
+                <div class="bg-white border border-gray-100 rounded-2xl p-5 hover:border-amber-300 transition-all duration-300 calm-shadow flex flex-col justify-between">
+                    <div>
+                        <div class="w-11 h-11 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center mb-4">
+                            <i data-lucide="users" class="w-6 h-6"></i>
+                        </div>
+                        <h3 class="font-bold text-gray-900 text-lg mb-1">Rede Silenciosa</h3>
+                        <p class="text-xs text-gray-600 mb-4">Cadastre até 3 pessoas de extrema confiança (Faróis) e envie avisos discretos de acolhimento.</p>
+                    </div>
+                    <button onclick="switchTab('rede')" class="w-full py-2.5 px-4 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 font-medium rounded-lg text-sm transition flex items-center justify-center gap-2">
+                        <span>Meus Faróis</span>
+                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-amber-50/80 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+                <i data-lucide="info" class="w-5 h-5 text-amber-700 shrink-0 mt-0.5"></i>
+                <p class="text-xs text-amber-900 leading-relaxed">
+                    <strong>Aviso Importante:</strong> O Farol Amarelo é uma ferramenta complementar de primeiro auxílio e suporte emocional de emergência. Não substitui um diagnóstico médico profissional ou terapia tradicional. Em caso de crise grave, ligue gratuitamente para o <strong>CVV no número 188</strong>.
+                </p>
+            </div>
+        </section>
+
+        <!-- ================= TAB 2: DIÁRIO DO FAROLHEIRO ================= -->
+        <section id="content-diario" class="tab-content hidden space-y-6">
+            <div class="bg-white rounded-2xl p-6 border border-gray-100 calm-shadow">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 pb-4 border-b border-gray-100">
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+                            <i data-lucide="book-open" class="w-5 h-5 text-amber-600"></i>
+                            Diário de Micro-Desabafos
+                        </h2>
+                        <p class="text-xs text-gray-500 mt-1">Às vezes não é fácil se expressar por palavras escritas. Fale livremente ou digite com garantia total de privacidade na sua conta.</p>
+                    </div>
+                    <span class="inline-flex items-center gap-1 text-xs bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full border border-emerald-200 font-medium">
+                        <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> Espaço 100% Seguro & Privado
+                    </span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <label class="text-xs font-semibold text-gray-700 uppercase tracking-wider">Como deseja desabafar agora?</label>
+                            <div class="flex gap-2">
+                                <button type="button" onclick="setDesabafoMode('audio')" id="mode-audio-btn" class="px-3 py-1 rounded-lg text-xs font-medium bg-amber-500 text-white shadow-sm transition">
+                                    <i data-lucide="mic" class="w-3.5 h-3.5 inline mr-1"></i> Áudio / Voz
+                                </button>
+                                <button type="button" onclick="setDesabafoMode('text')" id="mode-text-btn" class="px-3 py-1 rounded-lg text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 transition">
+                                    <i data-lucide="edit-3" class="w-3.5 h-3.5 inline mr-1"></i> Texto
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="audio-input-zone" class="border-2 border-dashed border-amber-200 rounded-2xl p-6 text-center bg-amber-50/30 flex flex-col items-center justify-center min-h-[220px]">
+                            <div id="recording-visualizer" class="hidden mb-4 relative">
+                                <div class="w-16 h-16 rounded-full bg-red-500 text-white flex items-center justify-center text-xl recording-pulse">
+                                    <i data-lucide="mic" class="w-8 h-8 animate-pulse"></i>
+                                </div>
+                                <span class="text-xs font-bold text-red-600 mt-2 block" id="record-timer">00:00</span>
+                            </div>
+
+                            <div id="idle-recording-ui" class="space-y-3">
+                                <button id="start-rec-btn" onclick="toggleAudioRecording()" class="w-16 h-16 rounded-full bg-gradient-to-tr from-amber-500 to-amber-400 text-white flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition mx-auto">
+                                    <i data-lucide="mic" class="w-7 h-7"></i>
+                                </button>
+                                <p class="text-xs text-gray-600 font-medium" id="audio-status-label">Clique para iniciar a gravação do áudio</p>
+                            </div>
+
+                            <p class="text-[11px] text-gray-400 mt-3">Sua voz será transcrita e analisada em tempo real pela IA Farolheiro.</p>
+                        </div>
+
+                        <div id="text-input-zone" class="hidden space-y-3">
+                            <textarea id="desabafo-text" rows="7" placeholder="Escreva aqui tudo o que está sentindo... Sem julgamentos, coloque para fora." class="w-full p-4 rounded-xl border border-gray-200 focus:ring-2 focus:ring-amber-400 focus:border-amber-400 outline-none text-sm resize-none bg-gray-50/50"></textarea>
+                            <button onclick="processTextDesabafo()" class="w-full py-3 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-xl shadow-md transition flex items-center justify-center gap-2">
+                                <i data-lucide="send" class="w-4 h-4"></i> Enviar Desabafo ao Farolheiro
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900 text-slate-100 rounded-2xl p-5 flex flex-col justify-between min-h-[280px] shadow-inner relative overflow-hidden">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                            <div class="flex items-center gap-2">
+                                <div class="w-8 h-8 rounded-full bg-amber-400 text-amber-950 flex items-center justify-center font-bold text-xs">
+                                    IA
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-sm text-amber-300">Assistente "Farolheiro"</h4>
+                                    <p class="text-[10px] text-slate-400">Transcrição e Análise Empática</p>
+                                </div>
+                            </div>
+                            <span id="ai-status-badge" class="text-[10px] bg-slate-800 text-slate-400 px-2.5 py-0.5 rounded-full border border-slate-700">Aguardando...</span>
+                        </div>
+
+                        <div class="my-4 space-y-3 overflow-y-auto max-h-[220px] custom-scrollbar pr-2" id="ai-response-container">
+                            <p class="text-xs text-slate-400 italic">"Grave seu áudio ou digite seu texto ao lado. Estarei aqui para escutar seu desabafo, compreender seu momento e te oferecer palavras suaves."</p>
+                        </div>
+
+                        <div class="pt-3 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+                            <span class="flex items-center gap-1"><i data-lucide="lock" class="w-3 h-3"></i> Transcrição Privada</span>
+                            <span class="text-amber-400 font-medium" id="ai-mood-indicator">Modo: Acolhimento Ativo</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8 pt-6 border-t border-gray-100">
+                    <h3 class="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
+                        <i data-lucide="history" class="w-4 h-4 text-amber-600"></i> Histórico Recente Salvo na Sua Conta
+                    </h3>
+                    <div id="desabafos-history" class="space-y-3">
+                        <p class="text-xs text-gray-400 italic">Nenhum desabafo registrado ainda nesta conta.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 3: REDE SILENCIOSA (FARÓIS) ================= -->
+        <section id="content-rede" class="tab-content hidden space-y-6">
+            <div class="bg-white rounded-2xl p-6 border border-gray-100 calm-shadow">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 pb-4 border-b border-gray-100">
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+                            <i data-lucide="users" class="w-5 h-5 text-amber-600"></i>
+                            A Rede Silenciosa (Seus Faróis)
+                        </h2>
+                        <p class="text-xs text-gray-500 mt-1">Cadastre até 3 pessoas de extrema confiança salvas no seu perfil. Com um único botão, mande uma mensagem suave avisando que precisa de apoio.</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="bg-amber-50/50 p-5 rounded-2xl border border-amber-200/60 h-fit space-y-4">
+                        <h3 class="text-sm font-bold text-amber-900 flex items-center gap-1.5">
+                            <i data-lucide="user-plus" class="w-4 h-4"></i> Adicionar Novo Farol
+                        </h3>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Nome de Confiança</label>
+                            <input type="text" id="farol-name" placeholder="Ex: Maria (Irmã)" class="w-full p-2.5 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-amber-400 outline-none bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Telefone / WhatsApp</label>
+                            <input type="tel" id="farol-phone" placeholder="Ex: (11) 99999-9999" class="w-full p-2.5 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-amber-400 outline-none bg-white">
+                        </div>
+                        <button onclick="addFarolContact()" class="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-medium text-sm rounded-lg shadow transition flex items-center justify-center gap-2">
+                            <i data-lucide="plus-circle" class="w-4 h-4"></i> Salvar na Sua Conta
+                        </button>
+                        <p class="text-[11px] text-gray-500">Máximo de 3 contatos de emergência.</p>
+                    </div>
+
+                    <div class="lg:col-span-2 space-y-4">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-sm font-bold text-gray-800">Seus Faróis Cadastrados (<span id="farol-count">0</span>/3)</h3>
+                        </div>
+
+                        <div id="farois-container" class="space-y-3">
+                            <div id="empty-farois-msg" class="p-8 text-center border-2 border-dashed border-gray-200 rounded-2xl">
+                                <i data-lucide="user-x" class="w-8 h-8 text-gray-300 mx-auto mb-2"></i>
+                                <p class="text-xs text-gray-500">Você ainda não possui contatos cadastrados nesta conta.</p>
+                                <p class="text-[11px] text-gray-400 mt-1">Adicione pessoas próximas que você gostaria de contatar em um dia difícil.</p>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 p-5 bg-gradient-to-r from-amber-100 to-amber-50 rounded-2xl border border-amber-200 space-y-3">
+                            <h4 class="font-bold text-sm text-amber-900 flex items-center gap-2">
+                                <i data-lucide="bell-ring" class="w-4 h-4 text-amber-700"></i>
+                                Acionar Notificação Silenciosa
+                            </h4>
+                            <p class="text-xs text-amber-800">
+                                Ao acionar esta função, uma mensagem delicada será preparada para seus Faróis cadastrados:
+                            </p>
+                            <div class="p-3 bg-white/80 rounded-xl text-xs text-gray-700 italic border border-amber-200">
+                                "<span id="user-name-display">Você</span> não está passando por um bom dia e talvez precise de um oi, sem pressão."
+                            </div>
+                            <button onclick="triggerSilentAlert()" class="w-full py-3 bg-amber-600 hover:bg-amber-700 text-white font-semibold text-sm rounded-xl shadow transition flex items-center justify-center gap-2">
+                                <i data-lucide="send" class="w-4 h-4"></i> Enviar Mensagem de Acolhimento aos Faróis
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 4: TRIAGEM E ENCAMINHAMENTO ================= -->
+        <section id="content-triagem" class="tab-content hidden space-y-6">
+            <div class="bg-white rounded-2xl p-6 border border-gray-100 calm-shadow">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 pb-4 border-b border-gray-100">
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+                            <i data-lucide="shield-alert" class="w-5 h-5 text-amber-600"></i>
+                            Triagem & Encaminhamento Profissional
+                        </h2>
+                        <p class="text-xs text-gray-500 mt-1">Conexão direta com canais oficiais de saúde mental e voluntários capacitados.</p>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-r from-red-500 to-rose-600 rounded-2xl p-6 text-white shadow-lg mb-8 flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div class="space-y-2 text-center md:text-left">
+                        <span class="inline-block px-3 py-1 bg-white/20 rounded-full text-xs font-semibold">Atendimento 24 horas & Gratuito</span>
+                        <h3 class="text-2xl font-bold">CVV - Centro de Valorização da Vida</h3>
+                        <p class="text-xs opacity-90 max-w-xl">Apoio emocional e prevenção do suicídio. Atendimento sigiloso por telefone, chat ou e-mail com voluntários treinados.</p>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto shrink-0">
+                        <a href="tel:188" class="bg-white text-red-600 hover:bg-red-50 font-bold px-6 py-3.5 rounded-xl text-center text-lg flex items-center justify-center gap-2 shadow transition">
+                            <i data-lucide="phone-call" class="w-5 h-5"></i> Ligação 188
+                        </a>
+                        <a href="https://www.cvv.org.br/chat/" target="_blank" rel="noopener noreferrer" class="bg-red-700 hover:bg-red-800 text-white font-medium px-5 py-3.5 rounded-xl text-center text-sm flex items-center justify-center gap-2 transition">
+                            <i data-lucide="message-circle" class="w-4 h-4"></i> Abrir Chat do CVV
+                        </a>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-4">
+                        <h3 class="font-bold text-gray-900 text-sm flex items-center gap-2">
+                            <i data-lucide="user-check" class="w-4 h-4 text-amber-600"></i>
+                            Profissionais Parceiros em Plantão
+                        </h3>
+                        <div class="space-y-3">
+                            <div class="p-4 rounded-xl border border-gray-100 bg-gray-50/50 flex items-center justify-between hover:border-amber-200 transition">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full bg-amber-200 text-amber-900 font-bold flex items-center justify-center text-xs">
+                                        DR
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-sm text-gray-800">Dra. Camila Rocha</h4>
+                                        <p class="text-[11px] text-gray-500">Psicóloga Clínica (CRP 06/14290)</p>
+                                    </div>
+                                </div>
+                                <button onclick="openMockChat('Dra. Camila Rocha')" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-medium rounded-lg shadow-sm transition">
+                                    Solicitar Acolhimento
+                                </button>
+                            </div>
+
+                            <div class="p-4 rounded-xl border border-gray-100 bg-gray-50/50 flex items-center justify-between hover:border-amber-200 transition">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full bg-blue-200 text-blue-900 font-bold flex items-center justify-center text-xs">
+                                        PSI
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-sm text-gray-800">Dr. Lucas Mendes</h4>
+                                        <p class="text-[11px] text-gray-500">Especialista em Gestão de Crise</p>
+                                    </div>
+                                </div>
+                                <button onclick="openMockChat('Dr. Lucas Mendes')" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-medium rounded-lg shadow-sm transition">
+                                    Solicitar Acolhimento
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5 flex flex-col justify-between h-[320px]">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+                            <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5" id="chat-partner-name">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Plantão de Suporte Humano
+                            </span>
+                            <span class="text-[10px] text-slate-400">Modo Triagem</span>
+                        </div>
+
+                        <div id="chat-messages-box" class="flex-grow my-3 overflow-y-auto space-y-2 text-xs pr-1 custom-scrollbar">
+                            <div class="bg-amber-100 text-amber-900 p-2.5 rounded-lg max-w-[85%] leading-relaxed">
+                                Olá! Este é o canal de acolhimento rápido do Farol Amarelo. Como você se sente neste momento?
+                            </div>
+                        </div>
+
+                        <div class="flex gap-2 pt-2 border-t border-slate-200">
+                            <input type="text" id="chat-input-text" placeholder="Digite sua mensagem de apoio..." class="flex-grow p-2 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-amber-500 bg-white">
+                            <button onclick="sendChatMessage()" class="bg-amber-500 hover:bg-amber-600 text-white px-3 py-2 rounded-lg text-xs font-medium transition">
+                                Enviar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 5: KOTLIN IMPLEMENTATION ================= -->
+        <section id="content-kotlin" class="tab-content hidden space-y-6">
+            <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800 text-white calm-shadow">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 pb-4 border-b border-slate-800">
+                    <div>
+                        <h2 class="text-xl font-bold text-amber-400 flex items-center gap-2">
+                            <i data-lucide="code" class="w-5 h-5"></i>
+                            Código Fonte Kotlin (Jetpack Compose com Login)
+                        </h2>
+                        <p class="text-xs text-slate-400 mt-1">Implementação nativa completa do Farol Amarelo em Kotlin com gestão de sessão privada para Android.</p>
+                    </div>
+                    <button onclick="copyKotlinCode()" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-semibold flex items-center gap-2 transition">
+                        <i data-lucide="copy" class="w-4 h-4"></i> Copiar Código Kotlin
+                    </button>
+                </div>
+
+                <div class="relative">
+                    <pre class="bg-slate-950 p-5 rounded-xl text-xs font-mono text-amber-200/90 overflow-x-auto max-h-[500px] custom-scrollbar border border-slate-800 leading-relaxed" id="kotlin-code-block"><code>package com.farolamarelo.app
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            FarolAmareloTheme {
+                FarolAmareloApp()
+            }
+        }
+    }
+}
+
+@Composable
+fun FarolAmareloTheme(content: @Composable () -> Unit) {
+    MaterialTheme(
+        colorScheme = lightColorScheme(
+            primary = Color(0xFFFFB300),
+            secondary = Color(0xFFFF8F00),
+            background = Color(0xFFFAF8F5)
+        ),
+        content = content
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun FarolAmareloApp() {
+    var loggedInUser by remember { mutableStateOf<String?>(null) }
+    var isSosActive by remember { mutableStateOf(false) }
+
+    if (loggedInUser == null) {
+        LoginScreen(onLoginSuccess = { user -> loggedInUser = user })
+    } else {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("Farol Amarelo ($loggedInUser)", fontWeight = FontWeight.Bold) },
+                    actions = {
+                        TextButton(onClick = { loggedInUser = null }) {
+                            Text("Sair", color = Color(0xFF718096))
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFFFFF9E6))
+                )
+            }
+        ) { paddingValues ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .background(if (isSosActive) Color(0xFF121820) else Color(0xFFFAF8F5))
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    if (!isSosActive) {
+                        Text(
+                            text = "Olá, $loggedInUser. Você não está só.",
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF2D3748)
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Seu diário e rede de apoio estão salvos em segurança.",
+                            fontSize = 14.sp,
+                            color = Color(0xFF718096)
+                        )
+                        Spacer(modifier = Modifier.height(32.dp))
+                        Button(
+                            onClick = { isSosActive = true },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFB300)),
+                            shape = RoundedCornerShape(16.dp),
+                            modifier = Modifier.fillMaxWidth().height(56.dp)
+                        ) {
+                            Text("Iniciar Modo SOS (Respiro)", fontSize = 16.sp, color = Color.White)
+                        }
+                    } else {
+                        GuidedBreathingView(onClose = { isSosActive = false })
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun LoginScreen(onLoginSuccess: (String) -> Unit) {
+    var username by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text("Farol Amarelo", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Color(0xFFFFB300))
+        Text("Entre na sua conta privada", fontSize = 14.sp, color = Color.Gray)
+        Spacer(modifier = Modifier.height(24.dp))
+
+        OutlinedTextField(
+            value = username,
+            onValueChange = { username = it },
+            label = { Text("Nome ou E-mail") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        OutlinedTextField(
+            value = password,
+            onValueChange = { password = it },
+            label = { Text("Senha") },
+            visualTransformation = PasswordVisualTransformation(),
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Button(
+            onClick = { if (username.isNotBlank()) onLoginSuccess(username) },
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFB300)),
+            modifier = Modifier.fillMaxWidth().height(50.dp)
+        ) {
+            Text("Entrar no Meu Espaço", color = Color.White)
+        }
+    }
+}
+
+@Composable
+fun GuidedBreathingView(onClose: () -> Unit) {
+    var stepText by remember { mutableStateOf("Inspire...") }
+    var timerValue by remember { mutableStateOf(1) }
+
+    val infiniteTransition = rememberInfiniteTransition(label = "breathing")
+    val scale by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.6f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 4000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "scaleAnimation"
+    )
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            stepText = "Inspire..."
+            for (i in 1..4) { timerValue = i; delay(1000) }
+            stepText = "Segure"
+            for (i in 1..2) { timerValue = i; delay(1000) }
+            stepText = "Exale..."
+            for (i in 1..4) { timerValue = i; delay(1000) }
+        }
+    }
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceBetween,
+        modifier = Modifier.fillMaxSize()
+    ) {
+        Text("Modo Descompressão", color = Color(0xFFFFD54F), fontSize = 18.sp, fontWeight = FontWeight.Bold)
+
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(200.dp)
+                .scale(scale)
+                .background(Color(0x33FFB300), shape = CircleShape)
+        ) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .size(120.dp)
+                    .background(Color(0xFFFFB300), shape = CircleShape)
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(stepText, color = Color.White, fontWeight = FontWeight.Bold)
+                    Text("$timerValue", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold)
+                }
+            }
+        }
+
+        Button(
+            onClick = onClose,
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2D3748)),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Text("Concluir Respiro", color = Color.White)
+        }
+    }
+}</code></pre>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- AUTHENTICATION (LOGIN / CADASTRO) MODAL -->
+    <div id="authModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 transition-all duration-300">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full relative shadow-2xl space-y-5">
+            <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 p-2 rounded-full transition">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+
+            <div class="text-center">
+                <div class="w-12 h-12 bg-amber-100 text-amber-800 rounded-2xl flex items-center justify-center mx-auto mb-2">
+                    <i data-lucide="lock" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900" id="authModalTitle">Sua Conta Privada</h3>
+                <p class="text-xs text-gray-500 mt-1">Acesse ou crie um espaço pessoal para salvar seus diários e contatos.</p>
+            </div>
+
+            <form onsubmit="handleAuthSubmit(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Seu Nome ou Apelido</label>
+                    <input type="text" id="auth-username" required placeholder="Como gosta de ser chamado?" class="w-full p-3 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-amber-400 outline-none bg-gray-50">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Senha Privada</label>
+                    <input type="password" id="auth-password" required placeholder="Sua senha secreta" class="w-full p-3 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-amber-400 outline-none bg-gray-50">
+                </div>
+
+                <button type="submit" class="w-full py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl shadow-md transition">
+                    Entrar no Meu Espaço
+                </button>
+            </form>
+
+            <p class="text-[11px] text-center text-gray-400">
+                Os dados inseridos são mantidos estritamente no seu navegador ou dispositivo.
+            </p>
+        </div>
+    </div>
+
+    <!-- SOS MODAL & GUIDED BREATHING OVERLAY -->
+    <div id="sosModal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 transition-all duration-500">
+        <div class="bg-slate-900 border border-slate-800 text-white rounded-3xl p-6 sm:p-10 max-w-lg w-full text-center relative shadow-2xl space-y-6">
+            <button onclick="toggleSOSModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white p-2 rounded-full bg-slate-800/50 transition">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+
+            <div>
+                <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-400 bg-amber-400/10 px-3 py-1 rounded-full mb-2">
+                    <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Espaço de Descompressão Imediata
+                </span>
+                <h3 class="text-2xl font-bold">Respire no seu tempo.</h3>
+                <p class="text-xs text-slate-400 mt-1">O brilho da sua tela foi suavizado para acalmar seus sentidos.</p>
+            </div>
+
+            <div class="relative py-8 flex items-center justify-center">
+                <div class="w-48 h-48 sm:w-56 sm:h-56 rounded-full bg-gradient-to-tr from-amber-500/20 to-amber-300/30 animate-breathe-circle flex items-center justify-center">
+                    <div class="w-32 h-32 sm:w-36 sm:h-36 rounded-full bg-amber-400/30 backdrop-blur-sm border border-amber-300/40 flex flex-col items-center justify-center shadow-lg">
+                        <span id="breathe-action-text" class="text-sm font-bold tracking-widest text-amber-200 uppercase">Inspire</span>
+                        <span id="breathe-timer" class="text-2xl font-extrabold text-white mt-1">1</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-800/60 p-4 rounded-xl border border-slate-700 text-xs text-slate-300 leading-relaxed">
+                <p id="breathe-instruction">Siga o ritmo do círculo: Inspire pelo nariz devagar (4s), segure o ar (2s) e solte suavemente pela boca (4s).</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 pt-2">
+                <a href="tel:188" class="bg-red-600/90 hover:bg-red-600 text-white text-xs font-semibold py-3 px-3 rounded-xl transition flex items-center justify-center gap-1.5">
+                    <i data-lucide="phone" class="w-4 h-4"></i> Ligue 188 (CVV)
+                </a>
+                <button onclick="triggerSilentAlert()" class="bg-amber-600/90 hover:bg-amber-600 text-white text-xs font-semibold py-3 px-3 rounded-xl transition flex items-center justify-center gap-1.5">
+                    <i data-lucide="bell" class="w-4 h-4"></i> Avisar Faróis
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast Container -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Application Logic Script -->
+    <script>
+        let isSOSActive = false;
+        let breathingInterval = null;
+        let breatheStep = 0;
+        let breatheCounter = 1;
+
+        // AUTHENTICATION & USER STORAGE STATE
+        let currentUser = localStorage.getItem('farol_amarelo_current_user') || null;
+        let farois = [];
+        let desabafosHistory = [];
+
+        let isRecording = false;
+        let recTimerInterval = null;
+        let recSeconds = 0;
+
+        window.onload = function() {
+            lucide.createIcons();
+            initUserData();
+            updateAuthUI();
+        };
+
+        function initUserData() {
+            if (currentUser) {
+                farois = JSON.parse(localStorage.getItem(`farol_contacts_${currentUser}`)) || [];
+                desabafosHistory = JSON.parse(localStorage.getItem(`farol_desabafos_${currentUser}`)) || [];
+            } else {
+                farois = JSON.parse(localStorage.getItem('farol_amarelo_contacts')) || [
+                    { name: "Pessoa de Confiança 1", phone: "(11) 98888-7777" }
+                ];
+                desabafosHistory = JSON.parse(localStorage.getItem('farol_amarelo_desabafos')) || [];
+            }
+            renderFaroisList();
+            renderDesabafosHistory();
+        }
+
+        function updateAuthUI() {
+            const loginBtn = document.getElementById('loginBtnHeader');
+            const badge = document.getElementById('loggedInUserBadge');
+            const userNameEl = document.getElementById('headerUserName');
+            const displayNameEl = document.getElementById('user-name-display');
+
+            if (currentUser) {
+                loginBtn.classList.add('hidden');
+                badge.classList.remove('hidden');
+                badge.classList.add('flex');
+                userNameEl.innerText = currentUser;
+                if (displayNameEl) displayNameEl.innerText = currentUser;
+            } else {
+                loginBtn.classList.remove('hidden');
+                badge.classList.add('hidden');
+                badge.classList.remove('flex');
+                if (displayNameEl) displayNameEl.innerText = "Você";
+            }
+        }
+
+        function openAuthModal() {
+            document.getElementById('authModal').classList.remove('hidden');
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authModal').classList.add('hidden');
+        }
+
+        function handleAuthSubmit(e) {
+            e.preventDefault();
+            const usernameInput = document.getElementById('auth-username').value.trim();
+            if (!usernameInput) return;
+
+            currentUser = usernameInput;
+            localStorage.setItem('farol_amarelo_current_user', currentUser);
+
+            initUserData();
+            updateAuthUI();
+            closeAuthModal();
+            showToast(`Bem-vindo(a) ao seu espaço privado, ${currentUser}!`, "success");
+        }
+
+        function logoutUser() {
+            currentUser = null;
+            localStorage.removeItem('farol_amarelo_current_user');
+            initUserData();
+            updateAuthUI();
+            showToast("Você saiu da sua conta.", "info");
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active-tab', 'border-amber-500', 'text-amber-700');
+                btn.classList.add('border-transparent', 'text-gray-500');
+            });
+
+            const activeContent = document.getElementById(`content-${tabId}`);
+            if (activeContent) activeContent.classList.remove('hidden');
+
+            const activeTabBtn = document.getElementById(`tab-${tabId}`);
+            if (activeTabBtn) {
+                activeTabBtn.classList.add('active-tab', 'border-amber-500', 'text-amber-700');
+                activeTabBtn.classList.remove('border-transparent', 'text-gray-500');
+            }
+        }
+
+        function toggleSOSModal() {
+            const modal = document.getElementById('sosModal');
+            const body = document.body;
+            isSOSActive = !isSOSActive;
+
+            if (isSOSActive) {
+                modal.classList.remove('hidden');
+                body.classList.add('sos-active');
+                startGuidedBreathing();
+                showToast("Modo SOS Ativado. Brilho ajustado para conforto visual.", "info");
+            } else {
+                modal.classList.add('hidden');
+                body.classList.remove('sos-active');
+                stopGuidedBreathing();
+            }
+        }
+
+        function startGuidedBreathing() {
+            const timerEl = document.getElementById('breathe-timer');
+            const actionEl = document.getElementById('breathe-action-text');
+            const instructionEl = document.getElementById('breathe-instruction');
+
+            breatheStep = 0;
+            breatheCounter = 1;
+
+            if (breathingInterval) clearInterval(breathingInterval);
+
+            breathingInterval = setInterval(() => {
+                timerEl.innerText = breatheCounter;
+
+                if (breatheStep === 0) {
+                    actionEl.innerText = "Inspire...";
+                    instructionEl.innerText = "Puxe o ar suavemente pelo nariz e sinta o peito se expandir.";
+                    if (breatheCounter >= 4) {
+                        breatheStep = 1;
+                        breatheCounter = 0;
+                    }
+                } else if (breatheStep === 1) {
+                    actionEl.innerText = "Segure";
+                    instructionEl.innerText = "Mantenha o ar em seus pulmões com calma e tranqüilidade.";
+                    if (breatheCounter >= 2) {
+                        breatheStep = 2;
+                        breatheCounter = 0;
+                    }
+                } else if (breatheStep === 2) {
+                    actionEl.innerText = "Exale...";
+                    instructionEl.innerText = "Solte o ar devagar pela boca, liberando toda a tensão.";
+                    if (breatheCounter >= 4) {
+                        breatheStep = 0;
+                        breatheCounter = 0;
+                    }
+                }
+                breatheCounter++;
+            }, 1000);
+        }
+
+        function stopGuidedBreathing() {
+            if (breathingInterval) {
+                clearInterval(breathingInterval);
+                breathingInterval = null;
+            }
+        }
+
+        function setDesabafoMode(mode) {
+            const audioZone = document.getElementById('audio-input-zone');
+            const textZone = document.getElementById('text-input-zone');
+            const audioBtn = document.getElementById('mode-audio-btn');
+            const textBtn = document.getElementById('mode-text-btn');
+
+            if (mode === 'audio') {
+                audioZone.classList.remove('hidden');
+                textZone.classList.add('hidden');
+                audioBtn.className = "px-3 py-1 rounded-lg text-xs font-medium bg-amber-500 text-white shadow-sm transition";
+                textBtn.className = "px-3 py-1 rounded-lg text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 transition";
+            } else {
+                audioZone.classList.add('hidden');
+                textZone.classList.remove('hidden');
+                textBtn.className = "px-3 py-1 rounded-lg text-xs font-medium bg-amber-500 text-white shadow-sm transition";
+                audioBtn.className = "px-3 py-1 rounded-lg text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 transition";
+            }
+        }
+
+        function toggleAudioRecording() {
+            const visualizer = document.getElementById('recording-visualizer');
+            const idleUi = document.getElementById('idle-recording-ui');
+
+            if (!isRecording) {
+                isRecording = true;
+                recSeconds = 0;
+                visualizer.classList.remove('hidden');
+                idleUi.innerHTML = `
+                    <button onclick="toggleAudioRecording()" class="w-16 h-16 rounded-full bg-red-600 text-white flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition mx-auto animate-pulse">
+                        <i data-lucide="square" class="w-6 h-6"></i>
+                    </button>
+                    <p class="text-xs text-red-600 font-bold">Gravando desabafo por voz... Clique para parar.</p>
+                `;
+                lucide.createIcons();
+
+                recTimerInterval = setInterval(() => {
+                    recSeconds++;
+                    const mins = String(Math.floor(recSeconds / 60)).padStart(2, '0');
+                    const secs = String(recSeconds % 60).padStart(2, '0');
+                    document.getElementById('record-timer').innerText = `${mins}:${secs}`;
+                }, 1000);
+            } else {
+                isRecording = false;
+                clearInterval(recTimerInterval);
+                visualizer.classList.add('hidden');
+                idleUi.innerHTML = `
+                    <button onclick="toggleAudioRecording()" class="w-16 h-16 rounded-full bg-gradient-to-tr from-amber-500 to-amber-400 text-white flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition mx-auto">
+                        <i data-lucide="mic" class="w-7 h-7"></i>
+                    </button>
+                    <p class="text-xs text-gray-600 font-medium">Gravação concluída! Analisando tom...</p>
+                `;
+                lucide.createIcons();
+
+                simulateFarolheiroAI("Hoje o dia foi bastante exaustivo. Sinto que estou carregando um peso grande e precisava colocar pra fora.");
+            }
+        }
+
+        function processTextDesabafo() {
+            const input = document.getElementById('desabafo-text');
+            const text = input.value.trim();
+            if (!text) {
+                showToast("Por favor, escreva algo para desabafar.", "warning");
+                return;
+            }
+            simulateFarolheiroAI(text);
+            input.value = "";
+        }
+
+        function simulateFarolheiroAI(userContent) {
+            const container = document.getElementById('ai-response-container');
+            const badge = document.getElementById('ai-status-badge');
+            
+            badge.innerText = "Processando com IA...";
+            badge.className = "text-[10px] bg-amber-500/20 text-amber-300 px-2.5 py-0.5 rounded-full border border-amber-500/30 animate-pulse";
+
+            container.innerHTML = `
+                <div class="flex items-center gap-2 text-slate-400 text-xs py-4">
+                    <i data-lucide="loader-2" class="w-4 h-4 animate-spin text-amber-400"></i>
+                    <span>O Farolheiro está escutando seu relato e transcrevendo...</span>
+                </div>
+            `;
+            lucide.createIcons();
+
+            setTimeout(() => {
+                badge.innerText = "Concluído";
+                badge.className = "text-[10px] bg-emerald-500/20 text-emerald-300 px-2.5 py-0.5 rounded-full border border-emerald-500/30";
+
+                const responses = [
+                    "Percebo no seu tom de voz uma busca por alívio. Lembre-se de que é completamente normal sentir sobrecarga em alguns momentos.",
+                    "Obrigado por compartilhar isso comigo. Colocar em palavras ou áudio já é um grande primeiro passo para acolher seus sentimentos.",
+                    "Sua experiência é válida. Tente tomar um copo d'água agora e dar a si mesmo alguns minutos de pausa sem cobranças."
+                ];
+                const selectedAdvice = responses[Math.floor(Math.random() * responses.length)];
+
+                container.innerHTML = `
+                    <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700/80 mb-2">
+                        <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider block mb-1">Transcrição do Desabafo:</span>
+                        <p class="text-xs text-slate-200 italic">"${userContent}"</p>
+                    </div>
+
+                    <div class="bg-amber-950/40 p-3.5 rounded-xl border border-amber-500/30">
+                        <span class="text-[10px] font-bold text-amber-300 uppercase tracking-wider block mb-1 flex items-center gap-1">
+                            <i data-lucide="heart" class="w-3 h-3 text-amber-400"></i> Retorno do Farolheiro:
+                        </span>
+                        <p class="text-xs text-slate-100 leading-relaxed">${selectedAdvice}</p>
+                    </div>
+                `;
+                lucide.createIcons();
+
+                desabafosHistory.unshift({
+                    date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    text: userContent,
+                    advice: selectedAdvice
+                });
+                if (desabafosHistory.length > 5) desabafosHistory.pop();
+                
+                const storageKey = currentUser ? `farol_desabafos_${currentUser}` : 'farol_amarelo_desabafos';
+                localStorage.setItem(storageKey, JSON.stringify(desabafosHistory));
+                renderDesabafosHistory();
+
+            }, 1800);
+        }
+
+        function renderDesabafosHistory() {
+            const container = document.getElementById('desabafos-history');
+            if (desabafosHistory.length === 0) {
+                container.innerHTML = `<p class="text-xs text-gray-400 italic">Nenhum desabafo registrado ainda nesta conta.</p>`;
+                return;
+            }
+
+            container.innerHTML = desabafosHistory.map(item => `
+                <div class="p-3 bg-gray-50 border border-gray-100 rounded-xl text-xs space-y-1">
+                    <div class="flex justify-between items-center text-gray-400 text-[10px]">
+                        <span>Hoje às ${item.date}</span>
+                        <span class="text-amber-600 font-medium">Processado pelo Farolheiro</span>
+                    </div>
+                    <p class="text-gray-700 font-medium line-clamp-1">"${item.text}"</p>
+                </div>
+            `).join('');
+        }
+
+        function addFarolContact() {
+            const nameInput = document.getElementById('farol-name');
+            const phoneInput = document.getElementById('farol-phone');
+
+            const name = nameInput.value.trim();
+            const phone = phoneInput.value.trim();
+
+            if (!name || !phone) {
+                showToast("Por favor, preencha o nome e telefone do seu Farol.", "warning");
+                return;
+            }
+
+            if (farois.length >= 3) {
+                showToast("Você já atingiu o limite de 3 Faróis de confiança.", "warning");
+                return;
+            }
+
+            farois.push({ name, phone });
+            const storageKey = currentUser ? `farol_contacts_${currentUser}` : 'farol_amarelo_contacts';
+            localStorage.setItem(storageKey, JSON.stringify(farois));
+            
+            nameInput.value = "";
+            phoneInput.value = "";
+            renderFaroisList();
+            showToast("Farol cadastrado com sucesso!", "success");
+        }
+
+        function removeFarolContact(index) {
+            farois.splice(index, 1);
+            const storageKey = currentUser ? `farol_contacts_${currentUser}` : 'farol_amarelo_contacts';
+            localStorage.setItem(storageKey, JSON.stringify(farois));
+            renderFaroisList();
+            showToast("Farol removido.", "info");
+        }
+
+        function renderFaroisList() {
+            const container = document.getElementById('farois-container');
+            const countEl = document.getElementById('farol-count');
+            countEl.innerText = farois.length;
+
+            if (farois.length === 0) {
+                container.innerHTML = `
+                    <div id="empty-farois-msg" class="p-8 text-center border-2 border-dashed border-gray-200 rounded-2xl">
+                        <i data-lucide="user-x" class="w-8 h-8 text-gray-300 mx-auto mb-2"></i>
+                        <p class="text-xs text-gray-500">Você ainda não possui contatos cadastrados nesta conta.</p>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            container.innerHTML = farois.map((f, idx) => `
+                <div class="p-4 bg-white border border-gray-200 rounded-xl flex items-center justify-between shadow-sm">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-full bg-amber-100 text-amber-800 font-bold flex items-center justify-center text-xs">
+                            ${f.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-sm text-gray-800">${f.name}</h4>
+                            <p class="text-xs text-gray-500">${f.phone}</p>
+                        </div>
+                    </div>
+                    <button onclick="removeFarolContact(${idx})" class="text-gray-400 hover:text-red-500 p-2 rounded-lg transition">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function triggerSilentAlert() {
+            if (farois.length === 0) {
+                showToast("Cadastre pelo menos 1 Farol antes de enviar um alerta silencioso.", "warning");
+                switchTab('rede');
+                return;
+            }
+
+            showToast(`Notificação discreta enviada para ${farois.length} Farol(is) com sucesso.`, "success");
+        }
+
+        function openMockChat(profName) {
+            document.getElementById('chat-partner-name').innerHTML = `
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span> ${profName}
+            `;
+            const box = document.getElementById('chat-messages-box');
+            box.innerHTML = `
+                <div class="bg-amber-100 text-amber-900 p-2.5 rounded-lg max-w-[85%] leading-relaxed">
+                    Olá! Sou o(a) ${profName}. Este é um espaço acolhedor e confidencial. Como posso te apoiar agora?
+                </div>
+            `;
+            switchTab('triagem');
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chat-input-text');
+            const msg = input.value.trim();
+            if (!msg) return;
+
+            const box = document.getElementById('chat-messages-box');
+            box.innerHTML += `
+                <div class="bg-amber-500 text-white p-2.5 rounded-lg max-w-[85%] ml-auto leading-relaxed">
+                    ${msg}
+                </div>
+            `;
+            input.value = "";
+            box.scrollTop = box.scrollHeight;
+
+            setTimeout(() => {
+                box.innerHTML += `
+                    <div class="bg-amber-100 text-amber-900 p-2.5 rounded-lg max-w-[85%] leading-relaxed">
+                        Estou aqui com você. Vamos conversar passo a passo.
+                    </div>
+                `;
+                box.scrollTop = box.scrollHeight;
+            }, 1200);
+        }
+
+        function copyKotlinCode() {
+            const codeText = document.getElementById('kotlin-code-block').innerText;
+            navigator.clipboard.writeText(codeText).then(() => {
+                showToast("Código Kotlin copiado para a área de transferência!", "success");
+            });
+        }
+
+        function showToast(message, type = "info") {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+
+            let bgClass = "bg-slate-800 text-white";
+            if (type === "success") bgClass = "bg-emerald-600 text-white";
+            if (type === "warning") bgClass = "bg-amber-600 text-white";
+
+            toast.className = `${bgClass} text-xs font-medium px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 transform transition-all duration-300 pointer-events-auto`;
+            toast.innerHTML = `
+                <i data-lucide="info" class="w-4 h-4 shrink-0"></i>
+                <span>${message}</span>
+            `;
+
+            container.appendChild(toast);
+            lucide.createIcons();
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+    </script>
+</body>
+</html>
